@@ -317,7 +317,7 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
 
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">Wird geladen…</div>
+  <div class="loading-text" id="loading-text">Laden…</div>
 </div>
 <div class="load-bar" id="load-bar"></div>
 <div class="toast" id="toast"></div>
@@ -491,6 +491,82 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
 
       <div style="margin-top:4px;">
         <button class="btn btn-primary" onclick="bnfNeuSpeichern()">✓ Artikel anlegen & Wareneingang buchen</button>
+        <button class="btn btn-secondary" style="margin-top:10px;" onclick="bnfNeuAbbrechen()">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BARCODE NICHT GEFUNDEN -->
+<div class="screen" id="screen-bnf">
+  <div class="app-header">
+    <div class="logo">Woinemer <span>Unbekannter Barcode</span></div>
+    <button class="btn btn-dark" style="width:auto;padding:8px 16px;font-size:12px;" onclick="showScreen('scan')">← Zurück</button>
+  </div>
+  <div class="bnf-card">
+    <div style="font-size:13px;color:var(--gray);">Dieser Barcode ist noch nicht hinterlegt:</div>
+    <div class="bnf-code" id="bnf-code">—</div>
+    <div style="font-size:13px;color:var(--body);margin-bottom:6px;">Was möchtest du tun?</div>
+    <div class="bnf-actions">
+      <button class="btn btn-primary" onclick="bnfSucheZeigen()">🔍 Vorhandenen Artikel verknüpfen</button>
+      <button class="btn btn-secondary" onclick="bnfNeuZeigen()">＋ Neuen Artikel anlegen</button>
+    </div>
+  </div>
+  <!-- Suche -->
+  <div id="bnf-suche-bereich" style="display:none;padding:16px 20px 0;">
+    <div style="font-size:12px;color:var(--gray);margin-bottom:10px;">Artikel suchen → Barcode wird zugewiesen:</div>
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="bnf-suche-input" type="text" placeholder="Artikelname eingeben..." oninput="bnfSucheArtikel(this.value)">
+    </div>
+    <div id="bnf-suche-results" style="margin-top:8px;"></div>
+  </div>
+  <!-- Neuer Artikel -->
+  <div id="bnf-neu-bereich-div" style="display:none;">
+    <div class="neu-artikel-form">
+      <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--gold);margin-bottom:14px;">Neuer Artikel</div>
+      <div class="form-row full">
+        <label>Barcode (vorausgefüllt)</label>
+        <input type="text" id="bnf-neu-barcode" readonly style="opacity:.6;">
+      </div>
+      <div class="form-row full">
+        <label>Bezeichnung *</label>
+        <input type="text" id="bnf-neu-bezeichnung" placeholder="z.B. Pilsner Malz 25kg">
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Bereich *</label>
+          <select id="bnf-neu-bereich-sel">
+            <option value="SERVICE">Service</option>
+            <option value="KUECHE">Küche</option>
+            <option value="BRAUEREI">Brauerei</option>
+          </select>
+        </div>
+        <div>
+          <label>Kategorie</label>
+          <input type="text" id="bnf-neu-kategorie" placeholder="z.B. Hopfen">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Einheit</label>
+          <select id="bnf-neu-einheit">
+            <option>Stück</option><option>Liter</option><option>kg</option><option>g</option>
+            <option>Karton</option><option>Fass</option><option>Kiste</option>
+            <option>Flasche</option><option>Beutel</option><option>Sack</option>
+          </select>
+        </div>
+        <div>
+          <label>Preis (€)</label>
+          <input type="number" id="bnf-neu-preis" placeholder="0.00" step="0.01" inputmode="decimal">
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>Lieferant</label>
+        <input type="text" id="bnf-neu-lieferant" placeholder="optional">
+      </div>
+      <div style="margin-top:6px;">
+        <button class="btn btn-primary" onclick="bnfNeuSpeichern()">✓ Anlegen & Wareneingang buchen</button>
         <button class="btn btn-secondary" style="margin-top:10px;" onclick="bnfNeuAbbrechen()">Abbrechen</button>
       </div>
     </div>
@@ -1181,20 +1257,126 @@ function startScan() {
     scanner=new Html5Qrcode("reader");
     scanner.start(cam.id,{fps:10,qrbox:{width:250,height:150}},
       code=>{stopScan();onBarcode(code);},()=>{})
-    .catch(()=>{scanner=null;showScanFallback("Kamerazugriff verweigert – in Browser-Einstellungen erlauben.");});
+    .catch(()=>{scanner=null;showScanFallback("Kamerazugriff verweigert – Einstellungen prüfen.");});
   }).catch(()=>showScanFallback("Kamera nicht verfügbar – Berechtigung prüfen."));
 }
 function showScanFallback(msg){
   document.getElementById("reader").innerHTML=`<div style="padding:20px;text-align:center;color:var(--gray);font-size:13px;line-height:1.6;"><div style="font-size:28px;margin-bottom:8px;">📷</div><div style="color:var(--red);margin-bottom:6px;">${msg}</div><div>Barcode unten manuell eingeben.</div></div>`;
 }
-function stopScan(){if(scanner){scanner.stop().catch(()=>{});scanner=null;}}
-async function onBarcode(code){
-  showToast("Barcode: "+code);
-  const res=await api("getArtikel",{barcode:code});
-  if(res.ok) zeigeArtikelBuchen(res.artikel);
-  else{showToast("Nicht gefunden","error");showScreen("scan");}
+function stopScan(){
+  if(scanner){
+    scanner.stop().catch(()=>{});
+    scanner=null;
+  }
+}
+
+// ════ BARCODE VERARBEITUNG ════
+let unbekannterBarcode = null;
+
+async function onBarcode(code) {
+  // Scanner ist bereits gestoppt (stopScan() in start-callback)
+  showToast("Barcode: " + code);
+  const res = await api("getArtikel", {barcode: code});
+  if (res.ok) {
+    zeigeArtikelBuchen(res.artikel);
+  } else {
+    // Unbekannter Barcode → BNF-Screen zeigen
+    unbekannterBarcode = code;
+    document.getElementById("bnf-code").textContent = code;
+    document.getElementById("bnf-suche-bereich").style.display   = "none";
+    document.getElementById("bnf-neu-bereich-div").style.display = "none";
+    document.getElementById("bnf-suche-input").value = "";
+    document.getElementById("bnf-suche-results").innerHTML = "";
+    // Direkt Screen wechseln — kein stopScan nötig, bereits gestoppt
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("screen-bnf").classList.add("active");
+  }
 }
 function manualBarcode(v){if(v)onBarcode(v.trim());}
+
+// ════ BNF FUNKTIONEN ════
+function bnfSucheZeigen() {
+  document.getElementById("bnf-suche-bereich").style.display   = "block";
+  document.getElementById("bnf-neu-bereich-div").style.display = "none";
+  setTimeout(()=>document.getElementById("bnf-suche-input").focus(), 150);
+}
+
+function bnfNeuZeigen() {
+  document.getElementById("bnf-neu-bereich-div").style.display = "block";
+  document.getElementById("bnf-suche-bereich").style.display   = "none";
+  document.getElementById("bnf-neu-barcode").value     = unbekannterBarcode || "";
+  document.getElementById("bnf-neu-bezeichnung").value = "";
+  document.getElementById("bnf-neu-kategorie").value   = "";
+  document.getElementById("bnf-neu-preis").value       = "";
+  document.getElementById("bnf-neu-lieferant").value   = "";
+  if (currentUser?.bereich && currentUser.bereich !== "ALLE") {
+    document.getElementById("bnf-neu-bereich-sel").value = currentUser.bereich;
+  }
+  setTimeout(()=>document.getElementById("bnf-neu-bezeichnung").focus(), 150);
+}
+
+function bnfNeuAbbrechen() {
+  document.getElementById("bnf-neu-bereich-div").style.display = "none";
+}
+
+let bnfTimer = null;
+function bnfSucheArtikel(q) {
+  clearTimeout(bnfTimer);
+  const el = document.getElementById("bnf-suche-results");
+  if (q.length < 2) { el.innerHTML=""; return; }
+  bnfTimer = setTimeout(async () => {
+    const res = await api("sucheArtikel", {query:q, bereich:"ALLE"});
+    if (!res.ok || !res.results.length) {
+      el.innerHTML=`<p style="color:var(--gray);font-size:13px;margin-top:8px;">Keine Ergebnisse</p>`;
+      return;
+    }
+    el.innerHTML = res.results.map(a=>`
+      <div class="result-item" onclick="bnfVerknuepfen(${JSON.stringify(a).replace(/"/g,'&quot;')})">
+        <span class="r-bereich">${a.bereich}</span>
+        <div class="r-name">${a.bezeichnung}</div>
+        <div class="r-meta">${a.kategorie} · ${a.einheit} · ${a.barcode?'📷 '+a.barcode:'Kein Barcode'}</div>
+      </div>`).join("");
+  }, 300);
+}
+
+async function bnfVerknuepfen(artikel) {
+  artikel.barcode = unbekannterBarcode;
+  const res = await api("artikelSpeichern", {artikel});
+  if (res.ok) {
+    showToast("✅ Barcode verknüpft mit: " + artikel.bezeichnung, "success");
+    setTimeout(()=>zeigeArtikelBuchen(artikel), 600);
+  } else {
+    showToast(res.error || "Fehler", "error");
+  }
+}
+
+async function bnfNeuSpeichern() {
+  const bezeichnung = document.getElementById("bnf-neu-bezeichnung").value.trim();
+  if (!bezeichnung) { showToast("Bezeichnung fehlt", "error"); return; }
+
+  const neuerArtikel = {
+    id:            null,
+    barcode:       unbekannterBarcode,
+    bezeichnung,
+    bereich:       document.getElementById("bnf-neu-bereich-sel").value,
+    kategorie:     document.getElementById("bnf-neu-kategorie").value.trim(),
+    einheit:       document.getElementById("bnf-neu-einheit").value,
+    preis:         parseFloat(document.getElementById("bnf-neu-preis").value) || 0,
+    lieferant:     document.getElementById("bnf-neu-lieferant").value.trim(),
+    mindestbestand:0,
+    aktiv:         true,
+    notizen:       ""
+  };
+
+  const res = await api("artikelSpeichern", {artikel: neuerArtikel});
+  if (res.ok) {
+    neuerArtikel.id = res.id;
+    showToast("✅ " + bezeichnung + " angelegt", "success");
+    setTimeout(()=>zeigeArtikelBuchen(neuerArtikel), 600);
+  } else {
+    showToast(res.error || "Fehler", "error");
+  }
+}
 
 // ════ SUCHE ════
 let sT=null;
@@ -1594,7 +1776,7 @@ function showToast(msg, type="") {
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.className = "toast show" + (type ? " "+type : "");
-  setTimeout(() => t.classList.remove("show"), 3500);
+  setTimeout(()=>t.classList.remove("show"), 3500);
 }
 
 let loadBarTimer = null;
@@ -1603,24 +1785,28 @@ function showLoading(show, text="Laden…") {
   const bar     = document.getElementById("load-bar");
   const txt     = document.getElementById("loading-text");
   if (show) {
-    txt.textContent = text;
+    if(txt) txt.textContent = text;
     overlay.classList.add("show");
-    bar.style.transition = "none";
-    bar.style.width = "0%";
-    clearTimeout(loadBarTimer);
-    requestAnimationFrame(() => {
-      bar.style.transition = "width .4s ease";
-      bar.style.width = "60%";
-    });
-    loadBarTimer = setTimeout(() => { bar.style.width = "85%"; }, 1500);
-  } else {
-    overlay.classList.remove("show");
-    bar.style.width = "100%";
-    clearTimeout(loadBarTimer);
-    setTimeout(() => {
+    if(bar){
       bar.style.transition = "none";
       bar.style.width = "0%";
-    }, 400);
+      clearTimeout(loadBarTimer);
+      setTimeout(()=>{
+        bar.style.transition = "width .4s ease";
+        bar.style.width = "60%";
+      }, 30);
+      loadBarTimer = setTimeout(()=>{ bar.style.width = "85%"; }, 1500);
+    }
+  } else {
+    overlay.classList.remove("show");
+    if(bar){
+      bar.style.width = "100%";
+      clearTimeout(loadBarTimer);
+      setTimeout(()=>{
+        bar.style.transition = "none";
+        bar.style.width = "0%";
+      }, 400);
+    }
   }
 }
 </script>
