@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="/woinemer-inventur/manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Woinemer Inventur</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -21,6 +21,16 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
 /* ── MODE WRAPPER ── */
 #mode-ma    { display:block; }
 #mode-admin { display:none;  }
+
+/* Sidebar komplett versteckt bis Admin-Mode aktiv */
+#mode-admin .admin-sidebar,
+#mode-admin .sidebar-overlay {
+  visibility: hidden;
+}
+#mode-admin.active .admin-sidebar,
+#mode-admin.active .sidebar-overlay {
+  visibility: visible;
+}
 
 /* ══════════════════════════════════
    MA APP STYLES
@@ -151,7 +161,8 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
 /* ══════════════════════════════════
    ADMIN STYLES (embedded, Sidebar)
 ══════════════════════════════════ */
-#mode-admin{display:flex;min-height:100vh;}
+#mode-admin{display:none;min-height:100vh;}
+#mode-admin.active{display:flex;}
 
 /* Sidebar */
 .admin-sidebar{
@@ -1001,7 +1012,9 @@ function closeSidebar(){
 function switchToAdmin() {
   stopScan();
   document.getElementById("mode-ma").style.display    = "none";
-  document.getElementById("mode-admin").style.display = "flex";
+  const adminEl = document.getElementById("mode-admin");
+  adminEl.style.display = "flex";
+  adminEl.classList.add("active");
   const label = currentUser?.vorname + " (" + currentUser?.kuerzel + ")";
   document.getElementById("admin-user-label").textContent    = label;
   document.getElementById("admin-topbar-user").textContent   = label;
@@ -1009,8 +1022,10 @@ function switchToAdmin() {
 }
 function switchToMA() {
   closeSidebar();
-  document.getElementById("mode-admin").style.display = "none";
-  document.getElementById("mode-ma").style.display    = "block";
+  const adminEl = document.getElementById("mode-admin");
+  adminEl.style.display = "none";
+  adminEl.classList.remove("active");
+  document.getElementById("mode-ma").style.display = "block";
 }
 
 // ════ LOGIN ════
