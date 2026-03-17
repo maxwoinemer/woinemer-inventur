@@ -444,7 +444,7 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
   </div>
 
   <!-- Neuer Artikel -->
-  <div id="bnf-neu-bereich" style="display:none;">
+  <div id="bnf-neu-bereich-div" style="display:none;">
     <div class="neu-artikel-form">
       <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--gold);margin-bottom:14px;">Neuer Artikel</div>
 
@@ -459,7 +459,7 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
       <div class="form-row">
         <div>
           <label>Bereich *</label>
-          <select id="bnf-neu-bereich">
+          <select id="bnf-neu-bereich-sel">
             <option value="SERVICE">Service</option>
             <option value="KUECHE">Küche</option>
             <option value="BRAUEREI">Brauerei</option>
@@ -1604,17 +1604,23 @@ function showLoading(show, text="Laden…") {
   const txt     = document.getElementById("loading-text");
   if (show) {
     txt.textContent = text;
-    overlay.classList.add("visible");
-    // Fortschrittsbalken animieren
+    overlay.classList.add("show");
+    bar.style.transition = "none";
     bar.style.width = "0%";
     clearTimeout(loadBarTimer);
-    setTimeout(() => { bar.style.width = "60%"; }, 50);
+    requestAnimationFrame(() => {
+      bar.style.transition = "width .4s ease";
+      bar.style.width = "60%";
+    });
     loadBarTimer = setTimeout(() => { bar.style.width = "85%"; }, 1500);
   } else {
-    overlay.classList.remove("visible");
+    overlay.classList.remove("show");
     bar.style.width = "100%";
-    setTimeout(() => { bar.style.width = "0%"; bar.style.transition = "none"; setTimeout(() => bar.style.transition = "width .3s ease", 50); }, 300);
     clearTimeout(loadBarTimer);
+    setTimeout(() => {
+      bar.style.transition = "none";
+      bar.style.width = "0%";
+    }, 400);
   }
 }
 </script>
