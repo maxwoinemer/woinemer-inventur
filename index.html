@@ -413,6 +413,90 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
   </div>
 </div>
 
+<!-- ════ BARCODE NICHT GEFUNDEN ════ -->
+<div class="screen" id="screen-bnf">
+  <div class="app-header">
+    <div class="logo">Woinemer <span>Barcode unbekannt</span></div>
+    <button class="btn btn-dark" style="width:auto;padding:8px 16px;font-size:12px;" onclick="showScreen('scan')">← Zurück</button>
+  </div>
+
+  <!-- Info -->
+  <div class="bnf-card">
+    <div style="font-size:13px;color:var(--gray);">Dieser Barcode ist noch nicht hinterlegt:</div>
+    <div class="bnf-code" id="bnf-code">—</div>
+    <div style="font-size:13px;color:var(--body);margin-bottom:4px;">Was möchtest du tun?</div>
+    <div class="bnf-actions">
+      <button class="btn btn-primary" onclick="bnfSucheZeigen()">🔍 Vorhandenen Artikel suchen & verknüpfen</button>
+      <button class="btn btn-secondary" onclick="bnfNeuZeigen()">＋ Neuen Artikel anlegen</button>
+    </div>
+  </div>
+
+  <!-- Suche & Verknüpfen -->
+  <div id="bnf-suche-bereich" style="display:none;padding:16px 20px 0;">
+    <div style="font-size:12px;color:var(--gray);margin-bottom:10px;">Artikel suchen und Barcode zuweisen:</div>
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="bnf-suche-input" type="text"
+             placeholder="Artikelname eingeben..."
+             oninput="bnfSucheArtikel(this.value)">
+    </div>
+    <div id="bnf-suche-results" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- Neuer Artikel -->
+  <div id="bnf-neu-bereich" style="display:none;">
+    <div class="neu-artikel-form">
+      <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--gold);margin-bottom:14px;">Neuer Artikel</div>
+
+      <div class="form-row full">
+        <label>Barcode (vorausgefüllt)</label>
+        <input type="text" id="bnf-neu-barcode" readonly style="opacity:.6;">
+      </div>
+      <div class="form-row full">
+        <label>Bezeichnung *</label>
+        <input type="text" id="bnf-neu-bezeichnung" placeholder="z.B. Pilsner Malz 25kg">
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Bereich *</label>
+          <select id="bnf-neu-bereich">
+            <option value="SERVICE">Service</option>
+            <option value="KUECHE">Küche</option>
+            <option value="BRAUEREI">Brauerei</option>
+          </select>
+        </div>
+        <div>
+          <label>Kategorie</label>
+          <input type="text" id="bnf-neu-kategorie" placeholder="z.B. Malz, Hopfen...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Einheit</label>
+          <select id="bnf-neu-einheit">
+            <option>Stück</option><option>Liter</option><option>kg</option>
+            <option>g</option><option>Karton</option><option>Fass</option>
+            <option>Kiste</option><option>Flasche</option><option>Beutel</option><option>Sack</option>
+          </select>
+        </div>
+        <div>
+          <label>Preis (€)</label>
+          <input type="number" id="bnf-neu-preis" placeholder="0.00" step="0.01">
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>Lieferant</label>
+        <input type="text" id="bnf-neu-lieferant" placeholder="optional">
+      </div>
+
+      <div style="margin-top:4px;">
+        <button class="btn btn-primary" onclick="bnfNeuSpeichern()">✓ Artikel anlegen & Wareneingang buchen</button>
+        <button class="btn btn-secondary" style="margin-top:10px;" onclick="bnfNeuAbbrechen()">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SUCHE -->
 <div class="screen" id="screen-suche">
   <div class="app-header">
