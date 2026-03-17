@@ -315,7 +315,11 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
 </head>
 <body>
 
-<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Wird geladen…</div>
+</div>
+<div class="load-bar" id="load-bar"></div>
 <div class="toast" id="toast"></div>
 
 <!-- ══════════════════════════════════
@@ -1502,12 +1506,33 @@ function openModal(id){document.getElementById(id).classList.add("open");}
 function closeModal(id){document.getElementById(id).classList.remove("open");}
 
 // ════ TOAST / LOADING ════
-function showToast(msg,type=""){
-  const t=document.getElementById("toast");t.textContent=msg;
-  t.className="toast show"+(type?" "+type:"");
-  setTimeout(()=>t.classList.remove("show"),3000);
+function showToast(msg, type="") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (type ? " "+type : "");
+  setTimeout(() => t.classList.remove("show"), 3500);
 }
-function showLoading(show){document.getElementById("loading").style.display=show?"flex":"none";}
+
+let loadBarTimer = null;
+function showLoading(show, text="Laden…") {
+  const overlay = document.getElementById("loading");
+  const bar     = document.getElementById("load-bar");
+  const txt     = document.getElementById("loading-text");
+  if (show) {
+    txt.textContent = text;
+    overlay.classList.add("visible");
+    // Fortschrittsbalken animieren
+    bar.style.width = "0%";
+    clearTimeout(loadBarTimer);
+    setTimeout(() => { bar.style.width = "60%"; }, 50);
+    loadBarTimer = setTimeout(() => { bar.style.width = "85%"; }, 1500);
+  } else {
+    overlay.classList.remove("visible");
+    bar.style.width = "100%";
+    setTimeout(() => { bar.style.width = "0%"; bar.style.transition = "none"; setTimeout(() => bar.style.transition = "width .3s ease", 50); }, 300);
+    clearTimeout(loadBarTimer);
+  }
+}
 </script>
 </body>
 </html>
